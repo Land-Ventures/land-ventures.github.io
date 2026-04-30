@@ -1115,7 +1115,7 @@ async function descargarFichaPDF(i) {
 
   pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
   txt(C.muted);
-  pdf.text('DESDE', PW/2, y + 11, {align:'center', charSpace: 1.5});
+  pdf.text('DESDE', PW/2, y + 11, {align:'center', charSpace: 0.5});
   pdf.setFont('helvetica','bold'); pdf.setFontSize(38);
   txt(C.orange);
   pdf.text(`USD ${p.precio_desde || ''}`, PW/2, y + 25, {align:'center'});
@@ -1238,20 +1238,20 @@ async function descargarFichaPDF(i) {
   if (p.escenarios && p.escenarios.length) {
     pdf.setFont('helvetica','bold'); pdf.setFontSize(10.5);
     txt(C.text);
-    pdf.text(isOficina ? 'FINANCIAMIENTO' : 'ESCENARIOS', M, y, {charSpace: 1.2});
+    pdf.text(isOficina ? 'FINANCIAMIENTO' : 'ESCENARIOS', M, y, {charSpace: 0.4});
     y += 6;
 
     // Header tabla
     pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
     txt(C.text);
     if (isOficina) {
-      pdf.text('MODALIDAD', M, y, {charSpace: 1.2});
-      pdf.text('%', PW/2, y, {align:'center', charSpace: 1.2});
-      pdf.text('MONTO', PW - M, y, {align:'right', charSpace: 1.2});
+      pdf.text('MODALIDAD', M, y, {charSpace: 0.4});
+      pdf.text('%', PW/2, y, {align:'center'});
+      pdf.text('MONTO', PW - M, y, {align:'right', charSpace: 0.4});
     } else {
-      pdf.text('M² CANJE', M, y, {charSpace: 1.2});
-      pdf.text('%', PW/2, y, {align:'center', charSpace: 1.2});
-      pdf.text('COSTO /M²', PW - M, y, {align:'right', charSpace: 1.2});
+      pdf.text('M² CANJE', M, y, {charSpace: 0.4});
+      pdf.text('%', PW/2, y, {align:'center'});
+      pdf.text('COSTO /M²', PW - M, y, {align:'right', charSpace: 0.4});
     }
     y += 2.5;
     drw([42, 39, 36]); pdf.setLineWidth(0.3);
@@ -1292,7 +1292,7 @@ async function descargarFichaPDF(i) {
   if (p.modelo && p.modelo.length) {
     pdf.setFont('helvetica','bold'); pdf.setFontSize(10.5);
     txt(C.text);
-    pdf.text(`MODELO DE INVERSIÓN${p.modelo_pct ? '  ·  ' + p.modelo_pct : ''}`, M, y, {charSpace: 1.2});
+    pdf.text(`MODELO DE INVERSIÓN${p.modelo_pct ? '  ·  ' + p.modelo_pct : ''}`, M, y, {charSpace: 0.4});
     y += 6;
 
     fill(C.cardMid);
