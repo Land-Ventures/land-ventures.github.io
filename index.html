@@ -1060,17 +1060,17 @@ async function descargarFichaPDF(i) {
 
   // Pill verde top-right alineada con el logo
   const badgeStr = `Oportunidad disponible · ${p.badge_mes || ''}`;
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5);
-  const bw = pdf.getTextWidth(badgeStr) + 10;
-  const pillH = 7.5;
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
+  const bw = pdf.getTextWidth(badgeStr) + 11;
+  const pillH = 8.5;
   const pillX = PW - M - bw;
   const pillY = logoTopY + (logoH - pillH) / 2;
   fill(C.greenBg);
   pdf.roundedRect(pillX, pillY, bw, pillH, 2, 2, 'F');
   drw(C.greenBd); pdf.setLineWidth(0.3);
   pdf.roundedRect(pillX, pillY, bw, pillH, 2, 2, 'S');
-  fill(C.green); pdf.circle(pillX + 3.5, pillY + pillH/2, 1, 'F');
-  txt(C.green); pdf.text(badgeStr, pillX + 6.5, pillY + pillH/2 + 1.6);
+  fill(C.green); pdf.circle(pillX + 4, pillY + pillH/2, 1.1, 'F');
+  txt(C.green); pdf.text(badgeStr, pillX + 7, pillY + pillH/2 + 1.7);
 
   // Línea separadora del header
   let y = logoTopY + logoH + 8;
@@ -1097,31 +1097,31 @@ async function descargarFichaPDF(i) {
   }
 
   // Zona (sin accent rect — match modal)
-  y += 7;
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(10.5);
+  y += 8;
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(13.5);
   txt(C.text);
   pdf.text(p.zona || '', M, y);
 
   // ===== BLOQUE PRECIO (centrado, sin borde naranja, idéntico al modal) =====
-  y += 8;
-  const priceH = 32;
+  y += 9;
+  const priceH = 36;
   fill(C.cardMid);
   pdf.roundedRect(M, y, PW - 2*M, priceH, 1.8, 1.8, 'F');
 
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
   txt(C.muted);
-  pdf.text('DESDE', PW/2, y + 9, {align:'center', charSpace: 1.5});
+  pdf.text('DESDE', PW/2, y + 11, {align:'center', charSpace: 1.5});
   pdf.setFont('helvetica','bold'); pdf.setFontSize(38);
   txt(C.orange);
-  pdf.text(`USD ${p.precio_desde || ''}`, PW/2, y + 23, {align:'center'});
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
+  pdf.text(`USD ${p.precio_desde || ''}`, PW/2, y + 25, {align:'center'});
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
   txt(C.text);
-  pdf.text(p.precio_sub || '', PW/2, y + 29, {align:'center'});
+  pdf.text(p.precio_sub || '', PW/2, y + 32, {align:'center'});
 
-  y += priceH + 8;
+  y += priceH + 9;
 
   // ===== INFO ROW (inline label + bold value, idéntico al modal) =====
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(9.5);
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(12.5);
   txt(C.text);
   pdf.text('Fecha de escritura', M, y);
   const lblFW = pdf.getTextWidth('Fecha de escritura');
@@ -1139,7 +1139,7 @@ async function descargarFichaPDF(i) {
   txt(C.text);
   pdf.text('Participación disponible', PW - M - valRW - 2, y, {align:'right'});
 
-  y += 9;
+  y += 10;
 
   // ===== DH CARDS (idéntico al modal · flat dark, sin accent) =====
   const dhItems = p.dh || [];
@@ -1147,7 +1147,7 @@ async function descargarFichaPDF(i) {
   if (dhCount > 0) {
     const dhGap = 3;
     const dhCellW = (PW - 2*M - dhGap * (dhCount - 1)) / dhCount;
-    const dhCellH = 19;
+    const dhCellH = 23;
     for (let k = 0; k < dhCount; k++) {
       const cx = M + k * (dhCellW + dhGap);
       const cy = y;
@@ -1156,28 +1156,28 @@ async function descargarFichaPDF(i) {
       pdf.roundedRect(cx, cy, dhCellW, dhCellH, 1.5, 1.5, 'F');
       // Valor naranja semibold
       pdf.setFont('helvetica','bold');
-      let valSize = 13;
+      let valSize = 14;
       pdf.setFontSize(valSize);
       const valTxt = dhItems[k].val || '';
-      while (pdf.getTextWidth(valTxt) > dhCellW - 6 && valSize > 9) {
+      while (pdf.getTextWidth(valTxt) > dhCellW - 6 && valSize > 10) {
         valSize -= 0.5;
         pdf.setFontSize(valSize);
       }
       txt(C.orange);
-      pdf.text(valTxt, cx + 4, cy + 9);
+      pdf.text(valTxt, cx + 4, cy + 11);
       // Label
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
       txt(C.text);
       const lblWrap = pdf.splitTextToSize(dhItems[k].lbl || '', dhCellW - 6);
-      pdf.text(lblWrap[0] || '', cx + 4, cy + 14);
-      if (lblWrap[1]) pdf.text(lblWrap[1], cx + 4, cy + 17);
+      pdf.text(lblWrap[0] || '', cx + 4, cy + 17);
+      if (lblWrap[1]) pdf.text(lblWrap[1], cx + 4, cy + 20.5);
     }
     y += dhCellH + 7;
   }
 
   // ===== LOTE BAR (sin ícono · idéntico al modal) =====
   if (p.lote) {
-    const loteH = 20;
+    const loteH = 24;
     fill(C.cardMid);
     pdf.roundedRect(M, y, PW - 2*M, loteH, 1.5, 1.5, 'F');
 
@@ -1192,38 +1192,38 @@ async function descargarFichaPDF(i) {
       const cx = M + idx * cellW + 5;
       if (idx > 0) {
         drw([60, 54, 46]); pdf.setLineWidth(0.2);
-        pdf.line(M + idx * cellW, y + 4, M + idx * cellW, y + loteH - 4);
+        pdf.line(M + idx * cellW, y + 5, M + idx * cellW, y + loteH - 5);
       }
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
       txt(C.cream);
-      pdf.text(cell[0], cx, y + 7.5, {charSpace: 0.7});
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(11);
+      pdf.text(cell[0], cx, y + 9, {charSpace: 0.7});
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(13.5);
       txt(C.white);
-      pdf.text(cell[1], cx, y + 15);
+      pdf.text(cell[1], cx, y + 18);
     });
     y += loteH + 9;
   }
 
   // ===== ESCENARIOS (idéntico al modal · sin alt rows ni base highlight) =====
   if (p.escenarios && p.escenarios.length) {
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(10.5);
     txt(C.text);
     pdf.text('ESCENARIOS', M, y, {charSpace: 1.2});
-    y += 5;
+    y += 6;
 
     // Header tabla
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
     txt(C.text);
     pdf.text('M² CANJE', M, y, {charSpace: 1.2});
     pdf.text('%', PW/2, y, {align:'center', charSpace: 1.2});
     pdf.text('COSTO /M²', PW - M, y, {align:'right', charSpace: 1.2});
-    y += 2;
+    y += 2.5;
     drw([42, 39, 36]); pdf.setLineWidth(0.3);
     pdf.line(M, y, PW - M, y);
-    y += 5.5;
+    y += 7;
 
-    const rowH = 7.5;
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
+    const rowH = 9;
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(13);
     p.escenarios.forEach((e, idx) => {
       txt(C.white);
       pdf.text(e.m2 || '', M, y);
@@ -1234,7 +1234,7 @@ async function descargarFichaPDF(i) {
       pdf.setFont('helvetica','normal');
       // Border-bottom muy sutil
       drw([26, 24, 22]); pdf.setLineWidth(0.15);
-      pdf.line(M, y + 2, PW - M, y + 2);
+      pdf.line(M, y + 2.5, PW - M, y + 2.5);
       y += rowH;
     });
     y += 3;
@@ -1245,29 +1245,29 @@ async function descargarFichaPDF(i) {
 
   // ===== MODELO DE INVERSIÓN (idéntico al modal · simple, sin highlight bg) =====
   if (p.modelo && p.modelo.length) {
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(10.5);
     txt(C.text);
     pdf.text(`MODELO DE INVERSIÓN${p.modelo_pct ? '  ·  ' + p.modelo_pct : ''}`, M, y, {charSpace: 1.2});
-    y += 5;
+    y += 6;
 
     fill(C.cardMid);
-    const modRowH = 8;
-    const modH = p.modelo.length * modRowH + 4;
+    const modRowH = 9.5;
+    const modH = p.modelo.length * modRowH + 5;
     pdf.roundedRect(M, y, PW - 2*M, modH, 1.5, 1.5, 'F');
 
-    y += 5.5;
+    y += 6.5;
     p.modelo.forEach((m, idx) => {
       const isHi = !!m.n;
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(9.5);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(12.5);
       txt(C.text);
       pdf.text(m.label || '', M + 5, y);
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(10);
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(13);
       txt(isHi ? C.orange : C.white);
       pdf.text(m.val || '', PW - M - 5, y, {align:'right'});
       // Separador sutil entre filas
       if (idx < p.modelo.length - 1) {
         drw([26, 24, 22]); pdf.setLineWidth(0.15);
-        pdf.line(M + 5, y + 2.5, PW - M - 5, y + 2.5);
+        pdf.line(M + 5, y + 3, PW - M - 5, y + 3);
       }
       y += modRowH;
     });
@@ -1275,7 +1275,7 @@ async function descargarFichaPDF(i) {
   }
 
   // ===== DISCLAIMER =====
-  pdf.setFont('helvetica','italic'); pdf.setFontSize(8);
+  pdf.setFont('helvetica','italic'); pdf.setFontSize(11);
   txt(C.muted);
   pdf.text('* Gastos de escrituración incluidos', M, y);
   y += 5;
@@ -1290,31 +1290,31 @@ async function descargarFichaPDF(i) {
   }
 
   // ===== FOOTER =====
-  const footY = PH - 16;
+  const footY = PH - 17;
   drw(C.borderSoft); pdf.setLineWidth(0.3);
-  pdf.line(M, footY - 5, PW - M, footY - 5);
+  pdf.line(M, footY - 9, PW - M, footY - 9);
   // Izquierda: logo real (chico) + tagline
-  const fLogoH = 3.2;
+  const fLogoH = 3.5;
   if (logoImg && logoImg.naturalWidth) {
     const fLogoAR = logoImg.naturalWidth / logoImg.naturalHeight;
     const fLogoW = fLogoH * fLogoAR;
     pdf.addImage(logoImg, 'PNG', M, footY - fLogoH + 0.3, fLogoW, fLogoH);
   } else {
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(10);
     txt(C.orange); pdf.text('LAND', M, footY);
     const fLogoW = pdf.getTextWidth('LAND');
     txt(C.white); pdf.text('VENTURES', M + fLogoW + 1.4, footY);
   }
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
   txt(C.muted);
-  pdf.text('Inversiones en tierra · CABA', M, footY + 5);
+  pdf.text('Inversiones en tierra · CABA', M, footY + 6);
   // Derecha: email + ubicación
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5);
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(11.5);
   txt(C.text);
   pdf.text('info@landventures.com.ar', PW - M, footY, {align:'right'});
-  pdf.setFontSize(7);
+  pdf.setFontSize(10);
   txt(C.muted);
-  pdf.text('Buenos Aires · Argentina', PW - M, footY + 5, {align:'right'});
+  pdf.text('Buenos Aires · Argentina', PW - M, footY + 6, {align:'right'});
 
   // Guardar
   const safeName = `${p.nombre}_${p.numero || ''}`.replace(/[^\w\d-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
