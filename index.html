@@ -1319,25 +1319,23 @@ async function descargarFichaPDF(i) {
     y += 4;
   }
 
-  // ===== DISCLAIMER (sólo para abierto · oficina no tiene escrituración) =====
-  if (!isOficina) {
-    pdf.setFont('helvetica','italic'); pdf.setFontSize(11);
-    txt(C.muted);
-    pdf.text('* Gastos de escrituración incluidos', M, y);
-    y += 5;
-
-    // Nota para abierto (si la hubiera)
-    if (p.nota) {
-      pdf.setFont('helvetica','italic'); pdf.setFontSize(8.5);
-      txt(C.text);
-      const wrapped = pdf.splitTextToSize(p.nota, PW - 2*M);
-      pdf.text(wrapped, M, y);
-      y += wrapped.length * 4 + 1;
-    }
+  // ===== NOTA (sólo para abierto · oficina ya la pintó arriba de la tabla) =====
+  if (!isOficina && p.nota) {
+    pdf.setFont('helvetica','italic'); pdf.setFontSize(8.5);
+    txt(C.text);
+    const wrapped = pdf.splitTextToSize(p.nota, PW - 2*M);
+    pdf.text(wrapped, M, y);
+    y += wrapped.length * 4 + 1;
   }
 
   // ===== FOOTER =====
   const footY = PH - 17;
+  // Disclaimer arriba de la línea separadora del footer
+  if (!isOficina) {
+    pdf.setFont('helvetica','italic'); pdf.setFontSize(10);
+    txt(C.muted);
+    pdf.text('* Gastos de escrituración incluidos', M, footY - 12);
+  }
   drw(C.borderSoft); pdf.setLineWidth(0.3);
   pdf.line(M, footY - 9, PW - M, footY - 9);
   // Izquierda: logo real (chico) + tagline
