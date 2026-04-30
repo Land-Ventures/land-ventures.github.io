@@ -1032,20 +1032,15 @@ function descargarFichaPDF(i) {
   fill(C.orange); pdf.rect(0, 0, PW, 1.5, 'F');           // top accent
   fill(C.orange); pdf.rect(0, PH - 1.5, PW, 1.5, 'F');    // bottom accent
 
-  // ===== HEADER · LOGO + URL =====
+  // ===== HEADER · LOGO =====
   let y = 18;
   pdf.setFont('helvetica','bold'); pdf.setFontSize(22);
   txt(C.orange); pdf.text('LAND', M, y);
   const logoW = pdf.getTextWidth('LAND');
   txt(C.white); pdf.text('VENTURES', M + logoW + 3, y);
-  // URL muted derecha
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
-  txt(C.muted); pdf.text('land-ventures.github.io', PW - M, y, {align:'right'});
-  // Línea decorativa naranja debajo del logo
-  drw(C.orange); pdf.setLineWidth(0.7);
-  pdf.line(M, y + 3, M + 28, y + 3);
-  drw(C.orangeLight); pdf.setLineWidth(0.4);
-  pdf.line(M + 28, y + 3, M + 36, y + 3);
+  // Línea fina naranja debajo del logo (sólida, sin extras)
+  drw(C.orange); pdf.setLineWidth(0.5);
+  pdf.line(M, y + 3, M + 32, y + 3);
 
   // ===== PILL VERDE (debajo del logo, izquierda) =====
   y += 11;
@@ -1131,7 +1126,7 @@ function descargarFichaPDF(i) {
 
   y += priceH + 8;
 
-  // ===== DH CARDS (gradiente sutil) =====
+  // ===== DH CARDS (flat, modernas) =====
   const dhItems = p.dh || [];
   const dhCount = Math.min(4, dhItems.length);
   if (dhCount > 0) {
@@ -1141,67 +1136,50 @@ function descargarFichaPDF(i) {
     for (let k = 0; k < dhCount; k++) {
       const cx = M + k * (dhCellW + dhGap);
       const cy = y;
-      // Gradiente vertical simulado: 6 stripes de cardLight → cardMid
-      const steps = 6;
-      for (let s = 0; s < steps; s++) {
-        const r = (s + 0.5) / steps;
-        const cr = Math.round(C.cardLight[0] + (C.cardMid[0] - C.cardLight[0]) * r);
-        const cg = Math.round(C.cardLight[1] + (C.cardMid[1] - C.cardLight[1]) * r);
-        const cb = Math.round(C.cardLight[2] + (C.cardMid[2] - C.cardLight[2]) * r);
-        pdf.setFillColor(cr, cg, cb);
-        const sy = cy + s * dhCellH / steps;
-        const sh = dhCellH / steps + 0.2;
-        pdf.rect(cx + 0.5, sy, dhCellW - 1, sh, 'F');
-      }
-      // Borde redondeado encima
-      drw(C.border); pdf.setLineWidth(0.35);
-      pdf.roundedRect(cx, cy, dhCellW, dhCellH, 2, 2, 'S');
-      // Accent bar izquierdo
+      // Card flat
+      fill(C.cardMid);
+      pdf.roundedRect(cx, cy, dhCellW, dhCellH, 1.5, 1.5, 'F');
+      drw(C.border); pdf.setLineWidth(0.3);
+      pdf.roundedRect(cx, cy, dhCellW, dhCellH, 1.5, 1.5, 'S');
+      // Línea naranja superior fina (en lugar del accent bar lateral)
       fill(C.orange);
-      pdf.rect(cx, cy + 4, 0.8, dhCellH - 8, 'F');
-      // Valor (naranja, 16pt)
+      pdf.rect(cx + 1.5, cy, dhCellW - 3, 0.5, 'F');
+      // Valor naranja
       pdf.setFont('helvetica','bold');
-      let valSize = 16;
+      let valSize = 15;
       pdf.setFontSize(valSize);
       const valTxt = dhItems[k].val || '';
-      while (pdf.getTextWidth(valTxt) > dhCellW - 9 && valSize > 10) {
+      while (pdf.getTextWidth(valTxt) > dhCellW - 7 && valSize > 10) {
         valSize -= 0.5;
         pdf.setFontSize(valSize);
       }
       txt(C.orange);
-      pdf.text(valTxt, cx + 5, cy + 11);
-      // Label (gris claro, pequeño)
+      pdf.text(valTxt, cx + 4, cy + 11);
+      // Label
       pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5);
       txt(C.text);
-      const lblWrap = pdf.splitTextToSize(dhItems[k].lbl || '', dhCellW - 9);
-      pdf.text(lblWrap[0] || '', cx + 5, cy + 16);
-      if (lblWrap[1]) pdf.text(lblWrap[1], cx + 5, cy + 19);
+      const lblWrap = pdf.splitTextToSize(dhItems[k].lbl || '', dhCellW - 7);
+      pdf.text(lblWrap[0] || '', cx + 4, cy + 16);
+      if (lblWrap[1]) pdf.text(lblWrap[1], cx + 4, cy + 19);
     }
     y += dhCellH + 7;
   }
 
-  // ===== LOTE BAR (con icono edificio) =====
+  // ===== LOTE BAR =====
   if (p.lote) {
     const loteH = 20;
     fill(C.cardMid);
-    pdf.roundedRect(M, y, PW - 2*M, loteH, 2, 2, 'F');
+    pdf.roundedRect(M, y, PW - 2*M, loteH, 1.5, 1.5, 'F');
     drw(C.border); pdf.setLineWidth(0.3);
-    pdf.roundedRect(M, y, PW - 2*M, loteH, 2, 2, 'S');
+    pdf.roundedRect(M, y, PW - 2*M, loteH, 1.5, 1.5, 'S');
 
-    // Ícono de edificio (3 rectángulos en naranja)
-    const ix = M + 5, iy = y + 4;
+    // Ícono edificio simple (2 rectángulos minimal)
+    const ix = M + 5, iy = y + 5;
     fill(C.orange);
-    pdf.rect(ix, iy + 4, 3, 8, 'F');
-    pdf.rect(ix + 3.5, iy + 1, 3, 11, 'F');
-    pdf.rect(ix + 7, iy + 5, 2.5, 7, 'F');
-    // Ventanas (pequeños puntos oscuros)
-    fill(C.cardMid);
-    [3.5, 5.5, 7.5].forEach(yy => {
-      pdf.rect(ix + 4.2, iy + yy, 0.5, 0.5, 'F');
-      pdf.rect(ix + 5.5, iy + yy, 0.5, 0.5, 'F');
-    });
+    pdf.rect(ix, iy + 4, 3, 7, 'F');
+    pdf.rect(ix + 3.5, iy, 4, 11, 'F');
 
-    const iconSpace = 14;
+    const iconSpace = 13;
     const cells = [
       ['FRENTE',       `${p.lote.frente} m`],
       ['FONDO',        `${p.lote.fondo} m`],
@@ -1279,14 +1257,8 @@ function descargarFichaPDF(i) {
     y += 6;
   }
 
-  // ===== SEPARADOR DECORATIVO =====
-  const sepCx = PW / 2;
-  drw(C.border); pdf.setLineWidth(0.3);
-  pdf.line(M + 25, y, sepCx - 5, y);
-  pdf.line(sepCx + 5, y, PW - M - 25, y);
-  fill(C.orange);
-  pdf.circle(sepCx, y, 0.9, 'F');
-  y += 6;
+  // ===== SEPARADOR LIMPIO =====
+  y += 4;
 
   // ===== MODELO DE INVERSIÓN =====
   if (p.modelo && p.modelo.length) {
@@ -1359,12 +1331,6 @@ function descargarFichaPDF(i) {
     y += wrapped.length * 4 + 1;
   }
 
-  // ===== "INFORMACIÓN CONFIDENCIAL" CENTRADO =====
-  const confY = PH - 26;
-  pdf.setFont('helvetica','italic'); pdf.setFontSize(7.5);
-  txt(C.muted);
-  pdf.text('Información confidencial · No distribuir', PW/2, confY, {align:'center', charSpace: 0.4});
-
   // ===== FOOTER =====
   const footY = PH - 16;
   drw(C.borderSoft); pdf.setLineWidth(0.3);
@@ -1377,13 +1343,13 @@ function descargarFichaPDF(i) {
   pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
   txt(C.muted);
   pdf.text('Inversiones en tierra · CABA', M, footY + 5);
-  // Derecha: email + confidencial
+  // Derecha: email + ubicación
   pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5);
   txt(C.text);
   pdf.text('info@landventures.com.ar', PW - M, footY, {align:'right'});
   pdf.setFontSize(7);
   txt(C.muted);
-  pdf.text('Información confidencial', PW - M, footY + 5, {align:'right'});
+  pdf.text('Buenos Aires · Argentina', PW - M, footY + 5, {align:'right'});
 
   // Guardar
   const safeName = `${p.nombre}_${p.numero || ''}`.replace(/[^\w\d-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
