@@ -1352,9 +1352,6 @@ async function descargarFichaPDF(i) {
     const fLogoW = pdf.getTextWidth('LAND');
     txt(C.white); pdf.text('VENTURES', M + fLogoW + 1.4, footY);
   }
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
-  txt(C.muted);
-  pdf.text('Inversiones en tierra · CABA', M, footY + 6);
   // Derecha: email + ubicación
   pdf.setFont('helvetica','normal'); pdf.setFontSize(11.5);
   txt(C.text);
