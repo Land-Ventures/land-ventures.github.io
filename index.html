@@ -1045,24 +1045,20 @@ async function descargarFichaPDF(i) {
   fill(C.orange); pdf.rect(0, PH - 1.5, PW, 1.5, 'F');    // bottom accent
 
   // ===== HEADER · LOGO IZQUIERDA + PILL DERECHA =====
-  const logoH = 7.5;
-  const logoTopY = 13;
+  const logoH = 5.5;
+  const logoTopY = 14;
   if (logoImg && logoImg.naturalWidth) {
     const logoAR = logoImg.naturalWidth / logoImg.naturalHeight;
     const logoW = logoH * logoAR;
     pdf.addImage(logoImg, 'PNG', M, logoTopY, logoW, logoH);
   } else {
-    // Fallback texto si la imagen no cargó
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(22);
-    txt(C.orange); pdf.text('LAND', M, logoTopY + logoH - 1);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(16);
+    txt(C.orange); pdf.text('LAND', M, logoTopY + logoH - 0.5);
     const lw = pdf.getTextWidth('LAND');
-    txt(C.white); pdf.text('VENTURES', M + lw + 3, logoTopY + logoH - 1);
+    txt(C.white); pdf.text('VENTURES', M + lw + 2, logoTopY + logoH - 0.5);
   }
-  // Línea fina naranja debajo del logo
-  drw(C.orange); pdf.setLineWidth(0.5);
-  pdf.line(M, logoTopY + logoH + 1.5, M + 32, logoTopY + logoH + 1.5);
 
-  // Pill verde top-right, alineada verticalmente con el logo
+  // Pill verde top-right alineada con el logo
   const badgeStr = `Oportunidad disponible · ${p.badge_mes || ''}`;
   pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5);
   const bw = pdf.getTextWidth(badgeStr) + 10;
@@ -1077,261 +1073,201 @@ async function descargarFichaPDF(i) {
   txt(C.green); pdf.text(badgeStr, pillX + 6.5, pillY + pillH/2 + 1.6);
 
   // Línea separadora del header
-  let y = logoTopY + logoH + 7;
+  let y = logoTopY + logoH + 8;
   drw(C.borderSoft); pdf.setLineWidth(0.3);
   pdf.line(M, y, PW - M, y);
 
-  // ===== TÍTULO PROPIEDAD =====
+  // ===== TÍTULO PROPIEDAD (idéntico al modal) =====
   y += 13;
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(36);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(28);
   txt(C.white);
   let tx = M;
   pdf.text(p.nombre || '', tx, y);
   tx += pdf.getTextWidth(p.nombre || '');
   if (p.numero) {
-    tx += 4; txt(C.orange);
+    tx += 3; txt(C.orange);
     pdf.text(p.numero, tx, y);
     tx += pdf.getTextWidth(p.numero);
   }
   if (p.calle_corta) {
-    tx += 5;
-    pdf.setFontSize(20);
+    tx += 4;
+    pdf.setFontSize(17);
     txt(C.cream);
-    pdf.text(`& ${p.calle_corta}`, tx, y - 4);
+    pdf.text(`& ${p.calle_corta}`, tx, y - 3);
   }
 
-  // Zona con accent rect
-  y += 8;
-  fill(C.orange);
-  pdf.rect(M, y - 3, 2, 4, 'F');
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
+  // Zona (sin accent rect — match modal)
+  y += 7;
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(10.5);
   txt(C.text);
-  pdf.text(p.zona || '', M + 5, y);
+  pdf.text(p.zona || '', M, y);
 
-  // ===== BLOQUE PRECIO (2 columnas) =====
-  y += 9;
-  const priceH = 34;
-  fill(C.cardLight);
-  pdf.roundedRect(M, y, PW - 2*M, priceH, 2.5, 2.5, 'F');
-  drw(C.border); pdf.setLineWidth(0.4);
-  pdf.roundedRect(M, y, PW - 2*M, priceH, 2.5, 2.5, 'S');
-  // Borde naranja izquierdo grueso
-  fill(C.orange);
-  pdf.rect(M, y, 3.5, priceH, 'F');
+  // ===== BLOQUE PRECIO (centrado, sin borde naranja, idéntico al modal) =====
+  y += 8;
+  const priceH = 32;
+  fill(C.cardMid);
+  pdf.roundedRect(M, y, PW - 2*M, priceH, 1.8, 1.8, 'F');
 
-  // Col izquierda: DESDE + precio
-  const innerLeft = M + 3.5 + 7;
   pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
   txt(C.muted);
-  pdf.text('DESDE', innerLeft, y + 9, {charSpace: 0.6});
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(30);
+  pdf.text('DESDE', PW/2, y + 9, {align:'center', charSpace: 1.5});
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(38);
   txt(C.orange);
-  pdf.text(`USD ${p.precio_desde || ''}`, innerLeft, y + 24);
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5);
-  txt(C.muted);
-  pdf.text(p.precio_sub || '', innerLeft, y + 30);
-
-  // Col derecha: Fecha + Participación
-  const colDiv = M + (PW - 2*M) * 0.58;
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
-  txt(C.muted);
-  pdf.text('FECHA DE ESCRITURA', colDiv, y + 9, {charSpace: 0.5});
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(12);
-  txt(C.white);
-  pdf.text(p.escritura || '—', colDiv, y + 15);
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
-  txt(C.muted);
-  pdf.text('PARTICIPACIÓN DISPONIBLE', colDiv, y + 23, {charSpace: 0.5});
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(12);
-  txt(C.green);
-  pdf.text(p.participacion_disponible || '—', colDiv, y + 29);
+  pdf.text(`USD ${p.precio_desde || ''}`, PW/2, y + 23, {align:'center'});
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
+  txt(C.text);
+  pdf.text(p.precio_sub || '', PW/2, y + 29, {align:'center'});
 
   y += priceH + 8;
 
-  // ===== DH CARDS (flat, modernas) =====
+  // ===== INFO ROW (inline label + bold value, idéntico al modal) =====
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(9.5);
+  txt(C.text);
+  pdf.text('Fecha de escritura', M, y);
+  const lblFW = pdf.getTextWidth('Fecha de escritura');
+  pdf.setFont('helvetica','bold');
+  txt(C.white);
+  pdf.text(p.escritura || '—', M + lblFW + 2, y);
+
+  // Right side: "Participación disponible 50%" (verde value)
+  const valR = p.participacion_disponible || '—';
+  pdf.setFont('helvetica','bold');
+  const valRW = pdf.getTextWidth(valR);
+  txt(C.green);
+  pdf.text(valR, PW - M, y, {align:'right'});
+  pdf.setFont('helvetica','normal');
+  txt(C.text);
+  pdf.text('Participación disponible', PW - M - valRW - 2, y, {align:'right'});
+
+  y += 9;
+
+  // ===== DH CARDS (idéntico al modal · flat dark, sin accent) =====
   const dhItems = p.dh || [];
   const dhCount = Math.min(4, dhItems.length);
   if (dhCount > 0) {
     const dhGap = 3;
     const dhCellW = (PW - 2*M - dhGap * (dhCount - 1)) / dhCount;
-    const dhCellH = 22;
+    const dhCellH = 19;
     for (let k = 0; k < dhCount; k++) {
       const cx = M + k * (dhCellW + dhGap);
       const cy = y;
-      // Card flat
+      // Card flat dark, sin border, sin accent
       fill(C.cardMid);
       pdf.roundedRect(cx, cy, dhCellW, dhCellH, 1.5, 1.5, 'F');
-      drw(C.border); pdf.setLineWidth(0.3);
-      pdf.roundedRect(cx, cy, dhCellW, dhCellH, 1.5, 1.5, 'S');
-      // Línea naranja superior fina (en lugar del accent bar lateral)
-      fill(C.orange);
-      pdf.rect(cx + 1.5, cy, dhCellW - 3, 0.5, 'F');
-      // Valor naranja
+      // Valor naranja semibold
       pdf.setFont('helvetica','bold');
-      let valSize = 15;
+      let valSize = 13;
       pdf.setFontSize(valSize);
       const valTxt = dhItems[k].val || '';
-      while (pdf.getTextWidth(valTxt) > dhCellW - 7 && valSize > 10) {
+      while (pdf.getTextWidth(valTxt) > dhCellW - 6 && valSize > 9) {
         valSize -= 0.5;
         pdf.setFontSize(valSize);
       }
       txt(C.orange);
-      pdf.text(valTxt, cx + 4, cy + 11);
+      pdf.text(valTxt, cx + 4, cy + 9);
       // Label
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
       txt(C.text);
-      const lblWrap = pdf.splitTextToSize(dhItems[k].lbl || '', dhCellW - 7);
-      pdf.text(lblWrap[0] || '', cx + 4, cy + 16);
-      if (lblWrap[1]) pdf.text(lblWrap[1], cx + 4, cy + 19);
+      const lblWrap = pdf.splitTextToSize(dhItems[k].lbl || '', dhCellW - 6);
+      pdf.text(lblWrap[0] || '', cx + 4, cy + 14);
+      if (lblWrap[1]) pdf.text(lblWrap[1], cx + 4, cy + 17);
     }
     y += dhCellH + 7;
   }
 
-  // ===== LOTE BAR =====
+  // ===== LOTE BAR (sin ícono · idéntico al modal) =====
   if (p.lote) {
     const loteH = 20;
     fill(C.cardMid);
     pdf.roundedRect(M, y, PW - 2*M, loteH, 1.5, 1.5, 'F');
-    drw(C.border); pdf.setLineWidth(0.3);
-    pdf.roundedRect(M, y, PW - 2*M, loteH, 1.5, 1.5, 'S');
 
-    // Ícono edificio simple (2 rectángulos minimal)
-    const ix = M + 5, iy = y + 5;
-    fill(C.orange);
-    pdf.rect(ix, iy + 4, 3, 7, 'F');
-    pdf.rect(ix + 3.5, iy, 4, 11, 'F');
-
-    const iconSpace = 13;
     const cells = [
       ['FRENTE',       `${p.lote.frente} m`],
       ['FONDO',        `${p.lote.fondo} m`],
       ['PISOS',        `${p.lote.pisos}`],
       ['M² VENDIBLES', `${p.lote.m2_vendibles}`]
     ];
-    const tableStart = M + iconSpace;
-    const cellW = (PW - 2*M - iconSpace) / 4;
+    const cellW = (PW - 2*M) / 4;
     cells.forEach((cell, idx) => {
-      const cx = tableStart + idx * cellW + 4;
+      const cx = M + idx * cellW + 5;
       if (idx > 0) {
-        drw(C.borderSoft); pdf.setLineWidth(0.2);
-        pdf.line(tableStart + idx * cellW, y + 4, tableStart + idx * cellW, y + loteH - 4);
+        drw([60, 54, 46]); pdf.setLineWidth(0.2);
+        pdf.line(M + idx * cellW, y + 4, M + idx * cellW, y + loteH - 4);
       }
       pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
       txt(C.cream);
-      pdf.text(cell[0], cx, y + 7, {charSpace: 0.5});
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(11.5);
+      pdf.text(cell[0], cx, y + 7.5, {charSpace: 0.7});
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(11);
       txt(C.white);
       pdf.text(cell[1], cx, y + 15);
     });
     y += loteH + 9;
   }
 
-  // ===== ESCENARIOS =====
+  // ===== ESCENARIOS (idéntico al modal · sin alt rows ni base highlight) =====
   if (p.escenarios && p.escenarios.length) {
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5);
     txt(C.text);
-    pdf.text('ESCENARIOS', M, y, {charSpace: 0.7});
-    y += 4;
-    drw(C.border); pdf.setLineWidth(0.4);
+    pdf.text('ESCENARIOS', M, y, {charSpace: 1.2});
+    y += 5;
+
+    // Header tabla
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+    txt(C.text);
+    pdf.text('M² CANJE', M, y, {charSpace: 1.2});
+    pdf.text('%', PW/2, y, {align:'center', charSpace: 1.2});
+    pdf.text('COSTO /M²', PW - M, y, {align:'right', charSpace: 1.2});
+    y += 2;
+    drw([42, 39, 36]); pdf.setLineWidth(0.3);
     pdf.line(M, y, PW - M, y);
-    y += 4;
+    y += 5.5;
 
-    const tableW = PW - 2*M;
-    // Header row con bg cardLight
-    const headerH = 7;
-    fill(C.cardLight);
-    pdf.rect(M, y, tableW, headerH, 'F');
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
-    txt(C.cream);
-    pdf.text('M² CANJE', M + 5, y + 4.6, {charSpace: 0.7});
-    pdf.text('%', PW/2, y + 4.6, {align:'center', charSpace: 0.7});
-    pdf.text('COSTO /M²', PW - M - 5, y + 4.6, {align:'right', charSpace: 0.7});
-    y += headerH;
-
-    // Filas (alternadas + base highlight)
-    const rowH = 8;
-    const baseIdx = Math.floor(p.escenarios.length / 2);
+    const rowH = 7.5;
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
     p.escenarios.forEach((e, idx) => {
-      const isBase = idx === baseIdx;
-      const isAlt  = idx % 2 === 0;
-      if (isBase) {
-        fill(C.cardWarm);
-        pdf.rect(M, y, tableW, rowH, 'F');
-        fill(C.orange);
-        pdf.rect(M, y, 1.5, rowH, 'F');
-      } else {
-        fill(isAlt ? C.cardDark : C.cardMid);
-        pdf.rect(M, y, tableW, rowH, 'F');
-      }
-      pdf.setFont('helvetica', isBase ? 'bold' : 'normal');
-      pdf.setFontSize(10.5);
       txt(C.white);
-      pdf.text(e.m2 || '', M + (isBase ? 6 : 5), y + 5.4);
-      pdf.text(e.pct || '', PW/2, y + 5.4, {align:'center'});
+      pdf.text(e.m2 || '', M, y);
+      pdf.text(e.pct || '', PW/2, y, {align:'center'});
       pdf.setFont('helvetica','bold');
       txt(C.orange);
-      pdf.text(e.costo || '', PW - M - 5, y + 5.4, {align:'right'});
+      pdf.text(e.costo || '', PW - M, y, {align:'right'});
+      pdf.setFont('helvetica','normal');
+      // Border-bottom muy sutil
+      drw([26, 24, 22]); pdf.setLineWidth(0.15);
+      pdf.line(M, y + 2, PW - M, y + 2);
       y += rowH;
     });
-    // Borde inferior tabla
-    drw(C.border); pdf.setLineWidth(0.3);
-    pdf.line(M, y, PW - M, y);
-    y += 6;
+    y += 3;
   }
 
   // ===== SEPARADOR LIMPIO =====
   y += 4;
 
-  // ===== MODELO DE INVERSIÓN =====
+  // ===== MODELO DE INVERSIÓN (idéntico al modal · simple, sin highlight bg) =====
   if (p.modelo && p.modelo.length) {
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5);
     txt(C.text);
-    pdf.text(`MODELO DE INVERSIÓN${p.modelo_pct ? '  ·  ' + p.modelo_pct : ''}`, M, y, {charSpace: 0.7});
-    y += 4;
-    drw(C.border); pdf.setLineWidth(0.4);
-    pdf.line(M, y, PW - M, y);
-    y += 3.5;
+    pdf.text(`MODELO DE INVERSIÓN${p.modelo_pct ? '  ·  ' + p.modelo_pct : ''}`, M, y, {charSpace: 1.2});
+    y += 5;
 
     fill(C.cardMid);
-    const modRowH = 9;
+    const modRowH = 8;
     const modH = p.modelo.length * modRowH + 4;
-    pdf.roundedRect(M, y, PW - 2*M, modH, 2, 2, 'F');
-    drw(C.border); pdf.setLineWidth(0.3);
-    pdf.roundedRect(M, y, PW - 2*M, modH, 2, 2, 'S');
+    pdf.roundedRect(M, y, PW - 2*M, modH, 1.5, 1.5, 'F');
 
     y += 5.5;
-    let firstHi = true;
     p.modelo.forEach((m, idx) => {
       const isHi = !!m.n;
-      const isInversionTotal = isHi && firstHi;
-      if (isHi) firstHi = false;
-      // Highlight bg para n:true
-      if (isHi) {
-        fill(C.cardWarm);
-        pdf.rect(M + 1.2, y - 4.3, PW - 2*M - 2.4, modRowH - 0.8, 'F');
-      }
-      // Label
-      pdf.setFont('helvetica', isHi ? 'bold' : 'normal');
-      pdf.setFontSize(isHi ? 10 : 9.5);
-      txt(isHi ? C.white : C.text);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(9.5);
+      txt(C.text);
       pdf.text(m.label || '', M + 5, y);
-      // Valor
-      pdf.setFont('helvetica','bold');
-      if (isInversionTotal) {
-        pdf.setFontSize(14);
-        txt(C.orange);
-      } else if (isHi) {
-        pdf.setFontSize(11);
-        txt(C.orange);
-      } else {
-        pdf.setFontSize(10.5);
-        txt(C.white);
-      }
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(10);
+      txt(isHi ? C.orange : C.white);
       pdf.text(m.val || '', PW - M - 5, y, {align:'right'});
-      // Separador entre filas
+      // Separador sutil entre filas
       if (idx < p.modelo.length - 1) {
-        drw(C.borderSoft); pdf.setLineWidth(0.15);
-        pdf.line(M + 5, y + 3, PW - M - 5, y + 3);
+        drw([26, 24, 22]); pdf.setLineWidth(0.15);
+        pdf.line(M + 5, y + 2.5, PW - M - 5, y + 2.5);
       }
       y += modRowH;
     });
@@ -1357,17 +1293,17 @@ async function descargarFichaPDF(i) {
   const footY = PH - 16;
   drw(C.borderSoft); pdf.setLineWidth(0.3);
   pdf.line(M, footY - 5, PW - M, footY - 5);
-  // Izquierda: logo real + tagline
-  const fLogoH = 4.5;
+  // Izquierda: logo real (chico) + tagline
+  const fLogoH = 3.2;
   if (logoImg && logoImg.naturalWidth) {
     const fLogoAR = logoImg.naturalWidth / logoImg.naturalHeight;
     const fLogoW = fLogoH * fLogoAR;
-    pdf.addImage(logoImg, 'PNG', M, footY - fLogoH + 0.5, fLogoW, fLogoH);
+    pdf.addImage(logoImg, 'PNG', M, footY - fLogoH + 0.3, fLogoW, fLogoH);
   } else {
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(11);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9);
     txt(C.orange); pdf.text('LAND', M, footY);
     const fLogoW = pdf.getTextWidth('LAND');
-    txt(C.white); pdf.text('VENTURES', M + fLogoW + 1.6, footY);
+    txt(C.white); pdf.text('VENTURES', M + fLogoW + 1.4, footY);
   }
   pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
   txt(C.muted);
