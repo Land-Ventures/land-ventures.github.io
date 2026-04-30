@@ -1058,8 +1058,13 @@ async function descargarFichaPDF(i) {
     txt(C.white); pdf.text('VENTURES', M + lw + 2, logoTopY + logoH - 0.5);
   }
 
+  // ¿Es oficina?
+  const isOficina = p.subcategoria === 'oficina';
+
   // Pill verde top-right alineada con el logo
-  const badgeStr = `Oportunidad disponible · ${p.badge_mes || ''}`;
+  const badgeStr = isOficina
+    ? `Disponible · ${p.badge_tipo || 'Oficina'}`
+    : `Oportunidad disponible · ${p.badge_mes || ''}`;
   pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
   const bw = pdf.getTextWidth(badgeStr) + 11;
   const pillH = 8.5;
@@ -1121,23 +1126,35 @@ async function descargarFichaPDF(i) {
   y += priceH + 9;
 
   // ===== INFO ROW (inline label + bold value, idéntico al modal) =====
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(12.5);
-  txt(C.text);
-  pdf.text('Fecha de escritura', M, y);
-  const lblFW = pdf.getTextWidth('Fecha de escritura');
-  pdf.setFont('helvetica','bold');
-  txt(C.white);
-  pdf.text(p.escritura || '—', M + lblFW + 2, y);
+  if (isOficina) {
+    // Para oficina: solo Disponibilidad (no hay escritura)
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(12.5);
+    txt(C.text);
+    pdf.text('Disponibilidad', M, y);
+    const lblDW = pdf.getTextWidth('Disponibilidad');
+    pdf.setFont('helvetica','bold');
+    txt(C.green);
+    pdf.text(p.participacion_disponible || '—', M + lblDW + 2, y);
+  } else {
+    // Abierto: Fecha de escritura + Participación
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(12.5);
+    txt(C.text);
+    pdf.text('Fecha de escritura', M, y);
+    const lblFW = pdf.getTextWidth('Fecha de escritura');
+    pdf.setFont('helvetica','bold');
+    txt(C.white);
+    pdf.text(p.escritura || '—', M + lblFW + 2, y);
 
-  // Right side: "Participación disponible 50%" (verde value)
-  const valR = p.participacion_disponible || '—';
-  pdf.setFont('helvetica','bold');
-  const valRW = pdf.getTextWidth(valR);
-  txt(C.green);
-  pdf.text(valR, PW - M, y, {align:'right'});
-  pdf.setFont('helvetica','normal');
-  txt(C.text);
-  pdf.text('Participación disponible', PW - M - valRW - 2, y, {align:'right'});
+    // Right side: "Participación disponible 50%" (verde value)
+    const valR = p.participacion_disponible || '—';
+    pdf.setFont('helvetica','bold');
+    const valRW = pdf.getTextWidth(valR);
+    txt(C.green);
+    pdf.text(valR, PW - M, y, {align:'right'});
+    pdf.setFont('helvetica','normal');
+    txt(C.text);
+    pdf.text('Participación disponible', PW - M - valRW - 2, y, {align:'right'});
+  }
 
   y += 10;
 
@@ -1204,29 +1221,57 @@ async function descargarFichaPDF(i) {
     y += loteH + 9;
   }
 
-  // ===== ESCENARIOS (idéntico al modal · sin alt rows ni base highlight) =====
+  // ===== NOTA (oficina suele tener · va antes de la tabla) =====
+  if (isOficina && p.nota) {
+    fill(C.cardMid);
+    const noteWrap = pdf.splitTextToSize(p.nota, PW - 2*M - 8);
+    const noteH = noteWrap.length * 4.6 + 6;
+    pdf.roundedRect(M, y, PW - 2*M, noteH, 1.5, 1.5, 'F');
+    fill(C.orange); pdf.rect(M, y + 2, 0.8, noteH - 4, 'F');
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(10.5);
+    txt(C.text);
+    pdf.text(noteWrap, M + 5, y + 6);
+    y += noteH + 6;
+  }
+
+  // ===== ESCENARIOS / FINANCIAMIENTO =====
   if (p.escenarios && p.escenarios.length) {
     pdf.setFont('helvetica','bold'); pdf.setFontSize(10.5);
     txt(C.text);
-    pdf.text('ESCENARIOS', M, y, {charSpace: 1.2});
+    pdf.text(isOficina ? 'FINANCIAMIENTO' : 'ESCENARIOS', M, y, {charSpace: 1.2});
     y += 6;
 
     // Header tabla
     pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
     txt(C.text);
-    pdf.text('M² CANJE', M, y, {charSpace: 1.2});
-    pdf.text('%', PW/2, y, {align:'center', charSpace: 1.2});
-    pdf.text('COSTO /M²', PW - M, y, {align:'right', charSpace: 1.2});
+    if (isOficina) {
+      pdf.text('MODALIDAD', M, y, {charSpace: 1.2});
+      pdf.text('%', PW/2, y, {align:'center', charSpace: 1.2});
+      pdf.text('MONTO', PW - M, y, {align:'right', charSpace: 1.2});
+    } else {
+      pdf.text('M² CANJE', M, y, {charSpace: 1.2});
+      pdf.text('%', PW/2, y, {align:'center', charSpace: 1.2});
+      pdf.text('COSTO /M²', PW - M, y, {align:'right', charSpace: 1.2});
+    }
     y += 2.5;
     drw([42, 39, 36]); pdf.setLineWidth(0.3);
     pdf.line(M, y, PW - M, y);
     y += 7;
 
-    const rowH = 9;
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(13);
+    const rowH = isOficina ? 10 : 9;
+    pdf.setFont('helvetica','normal');
     p.escenarios.forEach((e, idx) => {
+      // Auto-shrink primera columna si el texto es muy largo (oficina puede tener "24 cuotas (desde inicio de obra)")
+      let firstSize = 13;
+      pdf.setFontSize(firstSize);
+      const maxFirstW = (PW/2) - M - 6;
+      while (pdf.getTextWidth(e.m2 || '') > maxFirstW && firstSize > 9) {
+        firstSize -= 0.5;
+        pdf.setFontSize(firstSize);
+      }
       txt(C.white);
       pdf.text(e.m2 || '', M, y);
+      pdf.setFontSize(13);
       pdf.text(e.pct || '', PW/2, y, {align:'center'});
       pdf.setFont('helvetica','bold');
       txt(C.orange);
@@ -1274,19 +1319,21 @@ async function descargarFichaPDF(i) {
     y += 4;
   }
 
-  // ===== DISCLAIMER =====
-  pdf.setFont('helvetica','italic'); pdf.setFontSize(11);
-  txt(C.muted);
-  pdf.text('* Gastos de escrituración incluidos', M, y);
-  y += 5;
+  // ===== DISCLAIMER (sólo para abierto · oficina no tiene escrituración) =====
+  if (!isOficina) {
+    pdf.setFont('helvetica','italic'); pdf.setFontSize(11);
+    txt(C.muted);
+    pdf.text('* Gastos de escrituración incluidos', M, y);
+    y += 5;
 
-  // ===== NOTA OPCIONAL =====
-  if (p.nota) {
-    pdf.setFont('helvetica','italic'); pdf.setFontSize(8.5);
-    txt(C.text);
-    const wrapped = pdf.splitTextToSize(p.nota, PW - 2*M);
-    pdf.text(wrapped, M, y);
-    y += wrapped.length * 4 + 1;
+    // Nota para abierto (si la hubiera)
+    if (p.nota) {
+      pdf.setFont('helvetica','italic'); pdf.setFontSize(8.5);
+      txt(C.text);
+      const wrapped = pdf.splitTextToSize(p.nota, PW - 2*M);
+      pdf.text(wrapped, M, y);
+      y += wrapped.length * 4 + 1;
+    }
   }
 
   // ===== FOOTER =====
@@ -1464,6 +1511,12 @@ function togglePcard(i) {
           <tr><th>Modalidad</th><th>%</th><th>Monto</th></tr>
           ${finRows}
         </table>
+        <div class="pcard-pdf-wrap">
+          <button class="pcard-pdf-btn" onclick="descargarFichaPDF(${i});" type="button">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Descargar ficha PDF
+          </button>
+        </div>
       </div>
     `;
   } else {
