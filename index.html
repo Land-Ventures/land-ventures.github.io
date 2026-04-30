@@ -1002,237 +1002,390 @@ function descargarFichaPDF(i) {
 
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-  const PW = pdf.internal.pageSize.getWidth();   // 210
-  const PH = pdf.internal.pageSize.getHeight();  // 297
-  const M = 15;
+  const PW = 210, PH = 297, M = 15;
 
+  // ===== PALETA =====
   const C = {
-    bg:[18,17,16], card:[28,25,22], border:[64,53,42], borderSoft:[42,36,30],
+    bg:[18,17,16],            // #121110
+    cardLight:[30,28,26],     // #1e1c1a
+    cardMid:[22,20,18],       // #161412
+    cardDark:[20,18,16],      // #141210
+    cardWarm:[34,26,18],      // base scenario / highlight bg
+    border:[60,50,40],
+    borderSoft:[42,36,30],
     orange:[232,148,58],
-    white:[245,245,245], text:[170,160,148], muted:[120,108,96],
-    cream:[196,176,154], green:[134,207,144], greenBg:[16,46,28], greenBd:[34,90,56]
+    orangeLight:[240,184,120],
+    white:[245,245,245],
+    cream:[196,176,154],
+    text:[170,160,148],
+    muted:[120,108,96],
+    green:[134,207,144],
+    greenBg:[16,46,28],
+    greenBd:[34,90,56]
   };
   const fill = c => pdf.setFillColor(c[0],c[1],c[2]);
-  const txt = c => pdf.setTextColor(c[0],c[1],c[2]);
-  const drw = c => pdf.setDrawColor(c[0],c[1],c[2]);
+  const txt  = c => pdf.setTextColor(c[0],c[1],c[2]);
+  const drw  = c => pdf.setDrawColor(c[0],c[1],c[2]);
 
-  // ======== BACKGROUND ========
+  // ===== FONDO + ACCENT BARS =====
   fill(C.bg); pdf.rect(0, 0, PW, PH, 'F');
-  fill(C.orange); pdf.rect(0, 0, PW, 1.5, 'F');
+  fill(C.orange); pdf.rect(0, 0, PW, 1.5, 'F');           // top accent
+  fill(C.orange); pdf.rect(0, PH - 1.5, PW, 1.5, 'F');    // bottom accent
 
-  // ======== HEADER (logo izq + pill verde der) ========
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(15);
-  txt(C.orange); pdf.text('LAND', M, 16);
+  // ===== HEADER · LOGO + URL =====
+  let y = 18;
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(22);
+  txt(C.orange); pdf.text('LAND', M, y);
   const logoW = pdf.getTextWidth('LAND');
-  txt(C.white); pdf.text('VENTURES', M + logoW + 2, 16);
-  // Pill verde a la derecha
+  txt(C.white); pdf.text('VENTURES', M + logoW + 3, y);
+  // URL muted derecha
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
+  txt(C.muted); pdf.text('land-ventures.github.io', PW - M, y, {align:'right'});
+  // Línea decorativa naranja debajo del logo
+  drw(C.orange); pdf.setLineWidth(0.7);
+  pdf.line(M, y + 3, M + 28, y + 3);
+  drw(C.orangeLight); pdf.setLineWidth(0.4);
+  pdf.line(M + 28, y + 3, M + 36, y + 3);
+
+  // ===== PILL VERDE (debajo del logo, izquierda) =====
+  y += 11;
   const badgeStr = `Oportunidad disponible · ${p.badge_mes || ''}`;
   pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5);
   const bw = pdf.getTextWidth(badgeStr) + 10;
-  const bx = PW - M - bw;
-  const by = 11;
-  fill(C.greenBg); pdf.roundedRect(bx, by, bw, 7.5, 2, 2, 'F');
+  fill(C.greenBg);
+  pdf.roundedRect(M, y - 5, bw, 7.5, 2, 2, 'F');
   drw(C.greenBd); pdf.setLineWidth(0.3);
-  pdf.roundedRect(bx, by, bw, 7.5, 2, 2, 'S');
-  fill(C.green); pdf.circle(bx + 3.5, by + 3.7, 1, 'F');
-  txt(C.green); pdf.text(badgeStr, bx + 6.5, by + 5);
-  drw(C.borderSoft); pdf.setLineWidth(0.3); pdf.line(M, 23, PW - M, 23);
+  pdf.roundedRect(M, y - 5, bw, 7.5, 2, 2, 'S');
+  fill(C.green); pdf.circle(M + 3.5, y - 1.3, 1, 'F');
+  txt(C.green); pdf.text(badgeStr, M + 6.5, y);
 
-  // ======== TITLE ========
-  let y = 36;
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(30);
+  // Línea separadora del header
+  y += 8;
+  drw(C.borderSoft); pdf.setLineWidth(0.3);
+  pdf.line(M, y, PW - M, y);
+
+  // ===== TÍTULO PROPIEDAD =====
+  y += 13;
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(36);
   txt(C.white);
   let tx = M;
-  pdf.text(p.nombre, tx, y); tx += pdf.getTextWidth(p.nombre);
+  pdf.text(p.nombre || '', tx, y);
+  tx += pdf.getTextWidth(p.nombre || '');
   if (p.numero) {
-    tx += 3.5; txt(C.orange); pdf.text(p.numero, tx, y); tx += pdf.getTextWidth(p.numero);
+    tx += 4; txt(C.orange);
+    pdf.text(p.numero, tx, y);
+    tx += pdf.getTextWidth(p.numero);
   }
   if (p.calle_corta) {
-    tx += 4; txt(C.cream); pdf.text(`& ${p.calle_corta}`, tx, y);
+    tx += 5;
+    pdf.setFontSize(20);
+    txt(C.cream);
+    pdf.text(`& ${p.calle_corta}`, tx, y - 4);
   }
-  y += 7;
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(11.5);
-  txt(C.text); pdf.text(p.zona || '', M, y);
 
-  // ======== PRICE BLOCK ========
+  // Zona con accent rect
+  y += 8;
+  fill(C.orange);
+  pdf.rect(M, y - 3, 2, 4, 'F');
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
+  txt(C.text);
+  pdf.text(p.zona || '', M + 5, y);
+
+  // ===== BLOQUE PRECIO (2 columnas) =====
   y += 9;
-  const priceH = 36;
-  fill(C.card); drw(C.border); pdf.setLineWidth(0.4);
-  pdf.roundedRect(M, y, PW - 2*M, priceH, 2.5, 2.5, 'FD');
-  fill(C.orange); pdf.rect(M + 2, y, PW - 2*M - 4, 0.5, 'F');
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5);
-  txt(C.muted);
-  pdf.text('DESDE', PW/2, y + 8, {align:'center', charSpace: 0.5});
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(40);
-  txt(C.orange); pdf.text(`USD ${p.precio_desde || ''}`, PW/2, y + 23, {align:'center'});
-  pdf.setFont('helvetica','normal'); pdf.setFontSize(9);
-  txt(C.text); pdf.text(p.precio_sub || '', PW/2, y + 31, {align:'center'});
-  y += priceH + 7;
+  const priceH = 34;
+  fill(C.cardLight);
+  pdf.roundedRect(M, y, PW - 2*M, priceH, 2.5, 2.5, 'F');
+  drw(C.border); pdf.setLineWidth(0.4);
+  pdf.roundedRect(M, y, PW - 2*M, priceH, 2.5, 2.5, 'S');
+  // Borde naranja izquierdo grueso
+  fill(C.orange);
+  pdf.rect(M, y, 3.5, priceH, 'F');
 
-  // ======== INFO ROW (Fecha + Participación) ========
+  // Col izquierda: DESDE + precio
+  const innerLeft = M + 3.5 + 7;
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
+  txt(C.muted);
+  pdf.text('DESDE', innerLeft, y + 9, {charSpace: 0.6});
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(30);
+  txt(C.orange);
+  pdf.text(`USD ${p.precio_desde || ''}`, innerLeft, y + 24);
   pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5);
   txt(C.muted);
-  pdf.text('FECHA DE ESCRITURA', M, y, {charSpace: 0.4});
-  pdf.text('PARTICIPACIÓN DISPONIBLE', PW - M, y, {align:'right', charSpace: 0.4});
-  y += 6;
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(13);
-  txt(C.white); pdf.text(p.escritura || '—', M, y);
-  txt(C.green); pdf.text(p.participacion_disponible || '—', PW - M, y, {align:'right'});
-  y += 9;
+  pdf.text(p.precio_sub || '', innerLeft, y + 30);
 
-  // ======== DH GRID (4 columnas horizontales) ========
+  // Col derecha: Fecha + Participación
+  const colDiv = M + (PW - 2*M) * 0.58;
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+  txt(C.muted);
+  pdf.text('FECHA DE ESCRITURA', colDiv, y + 9, {charSpace: 0.5});
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(12);
+  txt(C.white);
+  pdf.text(p.escritura || '—', colDiv, y + 15);
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+  txt(C.muted);
+  pdf.text('PARTICIPACIÓN DISPONIBLE', colDiv, y + 23, {charSpace: 0.5});
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(12);
+  txt(C.green);
+  pdf.text(p.participacion_disponible || '—', colDiv, y + 29);
+
+  y += priceH + 8;
+
+  // ===== DH CARDS (gradiente sutil) =====
   const dhItems = p.dh || [];
   const dhCount = Math.min(4, dhItems.length);
   if (dhCount > 0) {
     const dhGap = 3;
     const dhCellW = (PW - 2*M - dhGap * (dhCount - 1)) / dhCount;
-    const dhCellH = 21;
+    const dhCellH = 22;
     for (let k = 0; k < dhCount; k++) {
       const cx = M + k * (dhCellW + dhGap);
       const cy = y;
-      fill(C.card); drw(C.border); pdf.setLineWidth(0.35);
-      pdf.roundedRect(cx, cy, dhCellW, dhCellH, 2.2, 2.2, 'FD');
-      fill(C.orange); pdf.rect(cx, cy + 4, 0.7, dhCellH - 8, 'F');
-      // dh val
+      // Gradiente vertical simulado: 6 stripes de cardLight → cardMid
+      const steps = 6;
+      for (let s = 0; s < steps; s++) {
+        const r = (s + 0.5) / steps;
+        const cr = Math.round(C.cardLight[0] + (C.cardMid[0] - C.cardLight[0]) * r);
+        const cg = Math.round(C.cardLight[1] + (C.cardMid[1] - C.cardLight[1]) * r);
+        const cb = Math.round(C.cardLight[2] + (C.cardMid[2] - C.cardLight[2]) * r);
+        pdf.setFillColor(cr, cg, cb);
+        const sy = cy + s * dhCellH / steps;
+        const sh = dhCellH / steps + 0.2;
+        pdf.rect(cx + 0.5, sy, dhCellW - 1, sh, 'F');
+      }
+      // Borde redondeado encima
+      drw(C.border); pdf.setLineWidth(0.35);
+      pdf.roundedRect(cx, cy, dhCellW, dhCellH, 2, 2, 'S');
+      // Accent bar izquierdo
+      fill(C.orange);
+      pdf.rect(cx, cy + 4, 0.8, dhCellH - 8, 'F');
+      // Valor (naranja, 16pt)
       pdf.setFont('helvetica','bold');
-      let valSize = 13;
+      let valSize = 16;
       pdf.setFontSize(valSize);
-      let valTxt = dhItems[k].val || '';
-      // shrink if needed
-      while (pdf.getTextWidth(valTxt) > dhCellW - 8 && valSize > 9) {
+      const valTxt = dhItems[k].val || '';
+      while (pdf.getTextWidth(valTxt) > dhCellW - 9 && valSize > 10) {
         valSize -= 0.5;
         pdf.setFontSize(valSize);
       }
-      txt(C.orange); pdf.text(valTxt, cx + 4, cy + 11);
-      // dh label
+      txt(C.orange);
+      pdf.text(valTxt, cx + 5, cy + 11);
+      // Label (gris claro, pequeño)
       pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5);
       txt(C.text);
-      const lblWrapped = pdf.splitTextToSize(dhItems[k].lbl || '', dhCellW - 8);
-      pdf.text(lblWrapped[0] || '', cx + 4, cy + 16);
-      if (lblWrapped[1]) pdf.text(lblWrapped[1], cx + 4, cy + 19);
+      const lblWrap = pdf.splitTextToSize(dhItems[k].lbl || '', dhCellW - 9);
+      pdf.text(lblWrap[0] || '', cx + 5, cy + 16);
+      if (lblWrap[1]) pdf.text(lblWrap[1], cx + 5, cy + 19);
     }
-    y += dhCellH + 6;
+    y += dhCellH + 7;
   }
 
-  // ======== LOTE BAR ========
+  // ===== LOTE BAR (con icono edificio) =====
   if (p.lote) {
     const loteH = 20;
-    fill(C.card); drw(C.border); pdf.setLineWidth(0.35);
-    pdf.roundedRect(M, y, PW - 2*M, loteH, 2.2, 2.2, 'FD');
+    fill(C.cardMid);
+    pdf.roundedRect(M, y, PW - 2*M, loteH, 2, 2, 'F');
+    drw(C.border); pdf.setLineWidth(0.3);
+    pdf.roundedRect(M, y, PW - 2*M, loteH, 2, 2, 'S');
+
+    // Ícono de edificio (3 rectángulos en naranja)
+    const ix = M + 5, iy = y + 4;
+    fill(C.orange);
+    pdf.rect(ix, iy + 4, 3, 8, 'F');
+    pdf.rect(ix + 3.5, iy + 1, 3, 11, 'F');
+    pdf.rect(ix + 7, iy + 5, 2.5, 7, 'F');
+    // Ventanas (pequeños puntos oscuros)
+    fill(C.cardMid);
+    [3.5, 5.5, 7.5].forEach(yy => {
+      pdf.rect(ix + 4.2, iy + yy, 0.5, 0.5, 'F');
+      pdf.rect(ix + 5.5, iy + yy, 0.5, 0.5, 'F');
+    });
+
+    const iconSpace = 14;
     const cells = [
-      ['FRENTE', `${p.lote.frente} m`],
-      ['FONDO', `${p.lote.fondo} m`],
-      ['PISOS', `${p.lote.pisos}`],
+      ['FRENTE',       `${p.lote.frente} m`],
+      ['FONDO',        `${p.lote.fondo} m`],
+      ['PISOS',        `${p.lote.pisos}`],
       ['M² VENDIBLES', `${p.lote.m2_vendibles}`]
     ];
-    const cellW = (PW - 2*M) / 4;
+    const tableStart = M + iconSpace;
+    const cellW = (PW - 2*M - iconSpace) / 4;
     cells.forEach((cell, idx) => {
-      const cx = M + idx * cellW + 5;
+      const cx = tableStart + idx * cellW + 4;
       if (idx > 0) {
-        drw(C.borderSoft); pdf.setLineWidth(0.25);
-        pdf.line(M + idx * cellW, y + 4, M + idx * cellW, y + loteH - 4);
+        drw(C.borderSoft); pdf.setLineWidth(0.2);
+        pdf.line(tableStart + idx * cellW, y + 4, tableStart + idx * cellW, y + loteH - 4);
       }
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5);
-      txt(C.cream); pdf.text(cell[0], cx, y + 7.5, {charSpace: 0.3});
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(12.5);
-      txt(C.white); pdf.text(cell[1], cx, y + 15.5);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
+      txt(C.cream);
+      pdf.text(cell[0], cx, y + 7, {charSpace: 0.5});
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(11.5);
+      txt(C.white);
+      pdf.text(cell[1], cx, y + 15);
     });
-    y += loteH + 8;
+    y += loteH + 9;
   }
 
-  // ======== ESCENARIOS ========
+  // ===== ESCENARIOS =====
   if (p.escenarios && p.escenarios.length) {
     pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5);
-    txt(C.text); pdf.text('ESCENARIOS', M, y, {charSpace: 0.6});
+    txt(C.text);
+    pdf.text('ESCENARIOS', M, y, {charSpace: 0.7});
     y += 4;
-    drw(C.border); pdf.setLineWidth(0.4); pdf.line(M, y, PW - M, y);
-    y += 6;
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
-    txt(C.muted);
-    pdf.text('m² canje', M + 3, y, {charSpace: 0.3});
-    pdf.text('%', PW/2, y, {align:'center'});
-    pdf.text('Costo /m²', PW - M - 3, y, {align:'right', charSpace: 0.3});
-    y += 2;
-    drw(C.borderSoft); pdf.setLineWidth(0.2); pdf.line(M, y, PW - M, y);
-    y += 5.5;
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(10.5);
+    drw(C.border); pdf.setLineWidth(0.4);
+    pdf.line(M, y, PW - M, y);
+    y += 4;
+
+    const tableW = PW - 2*M;
+    // Header row con bg cardLight
+    const headerH = 7;
+    fill(C.cardLight);
+    pdf.rect(M, y, tableW, headerH, 'F');
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(7);
+    txt(C.cream);
+    pdf.text('M² CANJE', M + 5, y + 4.6, {charSpace: 0.7});
+    pdf.text('%', PW/2, y + 4.6, {align:'center', charSpace: 0.7});
+    pdf.text('COSTO /M²', PW - M - 5, y + 4.6, {align:'right', charSpace: 0.7});
+    y += headerH;
+
+    // Filas (alternadas + base highlight)
+    const rowH = 8;
+    const baseIdx = Math.floor(p.escenarios.length / 2);
     p.escenarios.forEach((e, idx) => {
-      txt(C.white); pdf.text(e.m2 || '', M + 3, y);
-      pdf.text(e.pct || '', PW/2, y, {align:'center'});
-      pdf.setFont('helvetica','bold');
-      txt(C.orange); pdf.text(e.costo || '', PW - M - 3, y, {align:'right'});
-      pdf.setFont('helvetica','normal');
-      if (idx < p.escenarios.length - 1) {
-        drw([34,30,25]); pdf.setLineWidth(0.15);
-        pdf.line(M, y + 1.8, PW - M, y + 1.8);
+      const isBase = idx === baseIdx;
+      const isAlt  = idx % 2 === 0;
+      if (isBase) {
+        fill(C.cardWarm);
+        pdf.rect(M, y, tableW, rowH, 'F');
+        fill(C.orange);
+        pdf.rect(M, y, 1.5, rowH, 'F');
+      } else {
+        fill(isAlt ? C.cardDark : C.cardMid);
+        pdf.rect(M, y, tableW, rowH, 'F');
       }
-      y += 6.5;
+      pdf.setFont('helvetica', isBase ? 'bold' : 'normal');
+      pdf.setFontSize(10.5);
+      txt(C.white);
+      pdf.text(e.m2 || '', M + (isBase ? 6 : 5), y + 5.4);
+      pdf.text(e.pct || '', PW/2, y + 5.4, {align:'center'});
+      pdf.setFont('helvetica','bold');
+      txt(C.orange);
+      pdf.text(e.costo || '', PW - M - 5, y + 5.4, {align:'right'});
+      y += rowH;
     });
-    y += 3;
+    // Borde inferior tabla
+    drw(C.border); pdf.setLineWidth(0.3);
+    pdf.line(M, y, PW - M, y);
+    y += 6;
   }
 
-  // ======== MODELO INVERSIÓN ========
+  // ===== SEPARADOR DECORATIVO =====
+  const sepCx = PW / 2;
+  drw(C.border); pdf.setLineWidth(0.3);
+  pdf.line(M + 25, y, sepCx - 5, y);
+  pdf.line(sepCx + 5, y, PW - M - 25, y);
+  fill(C.orange);
+  pdf.circle(sepCx, y, 0.9, 'F');
+  y += 6;
+
+  // ===== MODELO DE INVERSIÓN =====
   if (p.modelo && p.modelo.length) {
     pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5);
     txt(C.text);
-    pdf.text(`MODELO DE INVERSIÓN${p.modelo_pct ? '  ·  '+p.modelo_pct : ''}`, M, y, {charSpace: 0.6});
+    pdf.text(`MODELO DE INVERSIÓN${p.modelo_pct ? '  ·  ' + p.modelo_pct : ''}`, M, y, {charSpace: 0.7});
     y += 4;
-    drw(C.border); pdf.setLineWidth(0.4); pdf.line(M, y, PW - M, y);
+    drw(C.border); pdf.setLineWidth(0.4);
+    pdf.line(M, y, PW - M, y);
     y += 3.5;
-    fill(C.card); drw(C.border); pdf.setLineWidth(0.35);
-    const modRowH = 8;
+
+    fill(C.cardMid);
+    const modRowH = 9;
     const modH = p.modelo.length * modRowH + 4;
-    pdf.roundedRect(M, y, PW - 2*M, modH, 2.2, 2.2, 'FD');
-    y += 5;
+    pdf.roundedRect(M, y, PW - 2*M, modH, 2, 2, 'F');
+    drw(C.border); pdf.setLineWidth(0.3);
+    pdf.roundedRect(M, y, PW - 2*M, modH, 2, 2, 'S');
+
+    y += 5.5;
+    let firstHi = true;
     p.modelo.forEach((m, idx) => {
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(9.5);
-      txt(C.text); pdf.text(m.label || '', M + 5, y);
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(10.5);
-      txt(m.n ? C.orange : C.white);
+      const isHi = !!m.n;
+      const isInversionTotal = isHi && firstHi;
+      if (isHi) firstHi = false;
+      // Highlight bg para n:true
+      if (isHi) {
+        fill(C.cardWarm);
+        pdf.rect(M + 1.2, y - 4.3, PW - 2*M - 2.4, modRowH - 0.8, 'F');
+      }
+      // Label
+      pdf.setFont('helvetica', isHi ? 'bold' : 'normal');
+      pdf.setFontSize(isHi ? 10 : 9.5);
+      txt(isHi ? C.white : C.text);
+      pdf.text(m.label || '', M + 5, y);
+      // Valor
+      pdf.setFont('helvetica','bold');
+      if (isInversionTotal) {
+        pdf.setFontSize(14);
+        txt(C.orange);
+      } else if (isHi) {
+        pdf.setFontSize(11);
+        txt(C.orange);
+      } else {
+        pdf.setFontSize(10.5);
+        txt(C.white);
+      }
       pdf.text(m.val || '', PW - M - 5, y, {align:'right'});
+      // Separador entre filas
       if (idx < p.modelo.length - 1) {
-        drw(C.borderSoft); pdf.setLineWidth(0.18);
-        pdf.line(M + 5, y + 2, PW - M - 5, y + 2);
+        drw(C.borderSoft); pdf.setLineWidth(0.15);
+        pdf.line(M + 5, y + 3, PW - M - 5, y + 3);
       }
       y += modRowH;
     });
-    y += 5;
+    y += 4;
   }
 
-  // ======== DISCLAIMER (abajo del último cuadro, arriba del footer) ========
+  // ===== DISCLAIMER =====
   pdf.setFont('helvetica','italic'); pdf.setFontSize(8);
   txt(C.muted);
   pdf.text('* Gastos de escrituración incluidos', M, y);
-  y += 6;
+  y += 5;
 
-  // ======== NOTA ========
+  // ===== NOTA OPCIONAL =====
   if (p.nota) {
     pdf.setFont('helvetica','italic'); pdf.setFontSize(8.5);
     txt(C.text);
     const wrapped = pdf.splitTextToSize(p.nota, PW - 2*M);
     pdf.text(wrapped, M, y);
-    y += wrapped.length * 4 + 2;
+    y += wrapped.length * 4 + 1;
   }
 
-  // ======== FOOTER (fijo al pie) ========
-  const footY = PH - 14;
-  drw(C.border); pdf.setLineWidth(0.4); pdf.line(M, footY - 8, PW - M, footY - 8);
-  // Brand izquierda
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(10);
+  // ===== "INFORMACIÓN CONFIDENCIAL" CENTRADO =====
+  const confY = PH - 26;
+  pdf.setFont('helvetica','italic'); pdf.setFontSize(7.5);
+  txt(C.muted);
+  pdf.text('Información confidencial · No distribuir', PW/2, confY, {align:'center', charSpace: 0.4});
+
+  // ===== FOOTER =====
+  const footY = PH - 16;
+  drw(C.borderSoft); pdf.setLineWidth(0.3);
+  pdf.line(M, footY - 5, PW - M, footY - 5);
+  // Izquierda: logo + tagline
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(11);
   txt(C.orange); pdf.text('LAND', M, footY);
   const fLogoW = pdf.getTextWidth('LAND');
-  txt(C.white); pdf.text('VENTURES', M + fLogoW + 1.4, footY);
+  txt(C.white); pdf.text('VENTURES', M + fLogoW + 1.6, footY);
   pdf.setFont('helvetica','normal'); pdf.setFontSize(7);
   txt(C.muted);
-  pdf.text('Inversiones en tierra · CABA', M, footY + 4);
-  // Email derecha
+  pdf.text('Inversiones en tierra · CABA', M, footY + 5);
+  // Derecha: email + confidencial
   pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5);
   txt(C.text);
   pdf.text('info@landventures.com.ar', PW - M, footY, {align:'right'});
   pdf.setFontSize(7);
   txt(C.muted);
-  pdf.text('Land Ventures · CABA · Argentina', PW - M, footY + 4, {align:'right'});
+  pdf.text('Información confidencial', PW - M, footY + 5, {align:'right'});
 
+  // Guardar
   const safeName = `${p.nombre}_${p.numero || ''}`.replace(/[^\w\d-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
   pdf.save(`LandVentures_${safeName}.pdf`);
 }
