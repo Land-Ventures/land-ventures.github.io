@@ -1096,9 +1096,8 @@ async function descargarFichaPDF(i) {
   }
   if (p.calle_corta) {
     tx += 4;
-    pdf.setFontSize(17);
     txt(C.cream);
-    pdf.text(`& ${p.calle_corta}`, tx, y - 3);
+    pdf.text(`& ${p.calle_corta}`, tx, y);
   }
 
   // Zona (sin accent rect — match modal)
