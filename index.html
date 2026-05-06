@@ -1292,7 +1292,13 @@ async function descargarFichaPDF(i) {
   if (p.modelo && p.modelo.length) {
     pdf.setFont('helvetica','bold'); pdf.setFontSize(10.5);
     txt(C.text);
-    pdf.text(`MODELO DE INVERSIÓN${p.modelo_pct ? '  ·  ' + p.modelo_pct : ''}`, M, y, {charSpace: 0.4});
+    pdf.text('MODELO DE INVERSIÓN', M, y, {charSpace: 0.4});
+    if (p.modelo_pct) {
+      const baseW = pdf.getTextWidth('MODELO DE INVERSIÓN') + (('MODELO DE INVERSIÓN'.length - 1) * 0.4);
+      txt(C.orange);
+      pdf.text(`(${p.modelo_pct})`, M + baseW + 4, y);
+      txt(C.text);
+    }
     y += 6;
 
     fill(C.cardMid);
@@ -1407,7 +1413,7 @@ function renderAbiertoCard(p, i) {
         <tr><th>m² canje</th><th>%</th><th>Costo /m²</th></tr>
         ${escRows}
       </table>
-      <div class="esc-lbl">Modelo de inversión (${p.modelo_pct || ''})</div>
+      <div class="esc-lbl">Modelo de inversión ${p.modelo_pct ? `<span style="color:var(--naranja);font-weight:700;text-transform:none;letter-spacing:normal;">(${p.modelo_pct})</span>` : ''}</div>
       <div class="modelo-box">${modeloRows}</div>
       <div class="dh-grid" style="margin-top:14px;">
         <div class="dh-item"><div class="dh-val">${p.escritura || '—'}</div><div class="dh-lbl">Fecha escrituración</div></div>
@@ -1509,7 +1515,7 @@ function togglePcard(i) {
         <div class="pcard-pdf-wrap">
           <button class="pcard-pdf-btn" onclick="descargarFichaPDF(${i});" type="button">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Descargar ficha PDF
+            Descargar PDF
           </button>
         </div>
       </div>
@@ -1545,13 +1551,13 @@ function togglePcard(i) {
           <tr><th>m² canje</th><th>%</th><th>Costo /m²</th></tr>
           ${escRows}
         </table>
-        <div class="esc-lbl">Modelo de inversión (${p.modelo_pct || ''})</div>
+        <div class="esc-lbl">Modelo de inversión ${p.modelo_pct ? `<span style="color:var(--naranja);font-weight:700;text-transform:none;letter-spacing:normal;">(${p.modelo_pct})</span>` : ''}</div>
         <div class="modelo-box">${modeloRows}</div>
         <div class="gastos-nota">* Gastos de escrituración incluidos</div>
         <div class="pcard-pdf-wrap">
           <button class="pcard-pdf-btn" onclick="descargarFichaPDF(${i});" type="button">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Descargar ficha PDF
+            Descargar PDF
           </button>
         </div>
       </div>
